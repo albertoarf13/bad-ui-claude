@@ -90,3 +90,26 @@ textarea:focus,
 .breathe {
   animation: breathe 3s ease-in-out infinite;
 }
+
+@keyframes rainbow-text {
+  to { background-position: 200% center; }
+}
+
+.rainbow-text {
+  background: linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, magenta, red);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbow-text 2s linear infinite;
+}
+
+@keyframes invert-flash {
+  0%, 97% { filter: invert(0); }
+  98% { filter: invert(1); }
+  100% { filter: invert(0); }
+}
+
+.invert-flash {
+  animation: invert-flash 15s linear infinite;
+}

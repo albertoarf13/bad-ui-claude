@@ -113,6 +113,10 @@ export function TodoListPanel({
 
   function reverseScroll(e: React.WheelEvent<HTMLDivElement>) {
     e.preventDefault()
+    if (Math.random() < 0.08) {
+      e.currentTarget.scrollTop = 0
+      return
+    }
     e.currentTarget.scrollTop -= e.deltaY
   }
 

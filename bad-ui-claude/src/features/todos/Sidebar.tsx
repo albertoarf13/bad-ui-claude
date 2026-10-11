@@ -104,7 +104,7 @@ export function Sidebar({
 
   return (
     <aside className="breathe flex flex-shrink-0 flex-col border-l-8 border-yellow-300 bg-fuchsia-700 p-4">
-      <h1 className="wobble mb-4 text-3xl font-black uppercase tracking-widest font-serif text-cyan-200 drop-shadow-[2px_2px_0_black]">My Lists</h1>
+      <h1 className="wobble rainbow-text mb-4 text-3xl font-black uppercase tracking-widest font-serif drop-shadow-[2px_2px_0_black]">My Lists</h1>
       <div className="flex-1 space-y-1 overflow-y-auto">
         {lists.map((list) => (
           <SidebarRow

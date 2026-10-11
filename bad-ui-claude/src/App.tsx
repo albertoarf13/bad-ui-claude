@@ -36,6 +36,50 @@ function useClickBeep() {
   }, [])
 }
 
+function FakeUpdateModal() {
+  const [showing, setShowing] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const trigger = setInterval(() => {
+      setShowing(true)
+      setProgress(0)
+    }, 25000)
+    return () => clearInterval(trigger)
+  }, [])
+
+  useEffect(() => {
+    if (!showing) return
+    const tick = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          setShowing(false)
+          return 0
+        }
+        return p + 4
+      })
+    }, 100)
+    return () => clearInterval(tick)
+  }, [showing])
+
+  if (!showing) return null
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70">
+      <div className="w-80 rounded-md border-4 border-black bg-gray-100 p-6 text-center shadow-2xl">
+        <p className="mb-3 text-sm font-bold">Installing Important Update</p>
+        <p className="mb-4 text-xs text-gray-500">Please do not close this tab. There is no reason for this.</p>
+        <div className="h-4 w-full overflow-hidden rounded border border-gray-400 bg-white">
+          <div
+            className="h-full bg-indigo-600 transition-all duration-100"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CursorFollower() {
   const [pos, setPos] = useState({ x: -100, y: -100 })
 
@@ -76,7 +120,7 @@ function App() {
   useClickBeep()
 
   return (
-    <div style={{ perspective: '900px' }} className="h-screen overflow-hidden">
+    <div style={{ perspective: '900px' }} className="invert-flash h-screen overflow-hidden">
       <div className="hue-cycle flex h-screen flex-row-reverse bg-gradient-to-br from-fuchsia-500 via-yellow-300 to-cyan-400 [transform:rotateX(3deg)_rotateY(-4deg)]">
         <Sidebar
           lists={lists}
@@ -100,6 +144,7 @@ function App() {
         />
       </div>
       <CursorFollower />
+      <FakeUpdateModal />
     </div>
   )
 }
