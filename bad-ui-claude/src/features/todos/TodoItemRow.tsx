@@ -95,7 +95,7 @@ export function TodoItemRow({
         checked={item.completed}
         onChange={onToggle}
         onMouseEnter={() =>
-          setCheckboxFlee({ x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 60 })
+          setCheckboxFlee({ x: (Math.random() - 0.5) * 320, y: (Math.random() - 0.5) * 220 })
         }
         style={{
           accentColor: 'white',

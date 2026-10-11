@@ -55,6 +55,40 @@ function ScrollToBottomButton({ targetRef }: { targetRef: React.RefObject<HTMLDi
   )
 }
 
+const CONFETTI_EMOJI = ['🎉', '✨', '🎊', '⭐', '💥']
+
+type ConfettiPiece = { id: number; left: number; delay: number; duration: number; emoji: string }
+
+function generateConfettiPieces(): ConfettiPiece[] {
+  return Array.from({ length: 30 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 0.5,
+    duration: 1.5 + Math.random(),
+    emoji: CONFETTI_EMOJI[Math.floor(Math.random() * CONFETTI_EMOJI.length)],
+  }))
+}
+
+function ConfettiBurst({ pieces }: { pieces: ConfettiPiece[] }) {
+  if (pieces.length === 0) return null
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[1005] overflow-hidden">
+      {pieces.map((p) => (
+        <span
+          key={p.id}
+          className="confetti-piece text-2xl"
+          style={{ left: `${p.left}%`, animationDelay: `${p.delay}s`, animationDuration: `${p.duration}s` }}
+        >
+          {p.emoji}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+const ROGUE_AUTOCORRECT_WORDS = ['banana', 'SKIBIDI', 'potato', 'mungo', 'quack', 'spaghetti']
+
 function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) => void }) {
   const [title, setTitle] = useState('')
   const [displayTitle, setDisplayTitle] = useState('')
@@ -62,8 +96,15 @@ function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) =>
   const [armed, setArmed] = useState(false)
 
   function handleTitleChange(value: string) {
-    setTitle(value)
     setArmed(false)
+    // "Autocorrect": occasionally overwrites what you typed. Not a bug.
+    if (value.length > title.length && Math.random() < 0.12) {
+      const rogue = ROGUE_AUTOCORRECT_WORDS[Math.floor(Math.random() * ROGUE_AUTOCORRECT_WORDS.length)]
+      setTitle(rogue)
+      setTimeout(() => setDisplayTitle(rogue), 400)
+      return
+    }
+    setTitle(value)
     setTimeout(() => setDisplayTitle(value), 400)
   }
 
@@ -127,8 +168,15 @@ export function TodoListPanel({
 }) {
   const [switching, setSwitching] = useState(false)
   const [undoToast, setUndoToast] = useState<string | null>(null)
+  const [confettiPieces, setConfettiPieces] = useState<ConfettiPiece[]>([])
   const lastListId = useRef<string | undefined>(undefined)
   const mainRef = useRef<HTMLDivElement>(null)
+
+  function handleAddItem(title: string, description: string) {
+    onAddItem(title, description)
+    setConfettiPieces(generateConfettiPieces())
+    setTimeout(() => setConfettiPieces([]), 2500)
+  }
 
   function handleDeleteItem(itemId: string, title: string) {
     onDeleteItem(itemId)
@@ -187,7 +235,7 @@ export function TodoListPanel({
       </div>
       <h2 className="glitch mb-4 -skew-x-6 text-sm font-light italic text-gray-400">{list.name}</h2>
       <FakeViewerBadge />
-      <AddItemForm onAdd={onAddItem} />
+      <AddItemForm onAdd={handleAddItem} />
       {list.items.length === 0 ? (
         <EmptyState message="No items yet — add your first one above" />
       ) : (
@@ -205,6 +253,7 @@ export function TodoListPanel({
       )}
       <NagBanner />
       <ScrollToBottomButton targetRef={mainRef} />
+      <ConfettiBurst pieces={confettiPieces} />
       {undoToast && (
         <div className="dodge fixed bottom-20 right-4 z-50 flex items-center gap-3 rounded-md border-4 border-black bg-gray-900 px-4 py-3 text-xs font-bold text-white shadow-2xl">
           <span>"{undoToast}" deleted.</span>

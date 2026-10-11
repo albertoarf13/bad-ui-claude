@@ -51,6 +51,30 @@ textarea:focus,
   animation: zoom-breathe 6s ease-in-out infinite;
 }
 
+@keyframes confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0.8; }
+}
+
+.confetti-piece {
+  position: fixed;
+  top: 0;
+  pointer-events: none;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* Slow enough to stay well clear of photosensitive flash thresholds. */
+@keyframes siren-border {
+  0%, 49% { border-color: #dc2626; }
+  50%, 100% { border-color: #2563eb; }
+}
+
+.siren-border {
+  animation: siren-border 1.2s steps(1) infinite;
+}
+
 @keyframes hue {
   from { filter: hue-rotate(0deg); }
   to { filter: hue-rotate(360deg); }
