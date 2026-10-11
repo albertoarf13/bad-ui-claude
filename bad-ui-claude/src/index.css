@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.blink {
+  animation: blink 1s step-start infinite;
+}
+
+button:focus,
+input:focus,
+textarea:focus,
+[tabindex]:focus {
+  outline: none !important;
+}

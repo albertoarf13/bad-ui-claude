@@ -38,7 +38,7 @@ function SidebarRow({
           if (e.key === 'Enter') commitRename()
           if (e.key === 'Escape') setIsRenaming(false)
         }}
-        className="w-full rounded-md border border-indigo-400 px-3 py-2 text-sm focus:outline-none"
+        className="w-full rounded-md border-4 border-dashed border-pink-500 px-3 py-2 text-sm"
       />
     )
   }
@@ -47,17 +47,17 @@ function SidebarRow({
     <div
       onClick={onSelect}
       className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm cursor-pointer ${
-        isSelected ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-100'
+        isSelected ? 'bg-yellow-100 text-gray-700 font-medium' : 'text-gray-700 hover:bg-yellow-50'
       }`}
     >
       <span className="truncate">{list.name}</span>
-      <span className="flex gap-1 opacity-0 group-hover:opacity-100">
+      <span className="flex items-center gap-1 opacity-0 transition-opacity duration-700 delay-300 group-hover:opacity-100">
         <button
           onClick={(e) => {
             e.stopPropagation()
             startRename()
           }}
-          className="rounded p-1 text-gray-400 hover:text-gray-700"
+          className="rounded p-1 text-[9px] text-gray-300 hover:text-gray-500"
           aria-label="Rename list"
         >
           ✎
@@ -67,7 +67,7 @@ function SidebarRow({
             e.stopPropagation()
             onDelete()
           }}
-          className="rounded p-1 text-gray-400 hover:text-red-600"
+          className="rounded p-1 text-lg font-bold text-red-600 hover:text-red-700"
           aria-label="Delete list"
         >
           ✕
@@ -102,8 +102,8 @@ export function Sidebar({
   }
 
   return (
-    <aside className="flex w-64 flex-shrink-0 flex-col border-r border-gray-200 bg-white p-4">
-      <h1 className="mb-4 text-lg font-semibold text-gray-900">My Lists</h1>
+    <aside className="flex w-48 flex-shrink-0 flex-col border-r-8 border-yellow-300 bg-fuchsia-700 p-4">
+      <h1 className="mb-4 text-3xl font-black uppercase tracking-widest font-serif text-cyan-200 drop-shadow-[2px_2px_0_black]">My Lists</h1>
       <div className="flex-1 space-y-1 overflow-y-auto">
         {lists.map((list) => (
           <SidebarRow
@@ -134,12 +134,12 @@ export function Sidebar({
             }
           }}
           placeholder="List name"
-          className="mt-2 w-full rounded-md border border-indigo-400 px-3 py-2 text-sm focus:outline-none"
+          className="mt-2 w-full rounded-md border-4 border-dashed border-pink-500 px-3 py-2 text-sm"
         />
       ) : (
         <button
           onClick={() => setIsAdding(true)}
-          className="mt-2 rounded-md px-3 py-2 text-left text-sm text-indigo-600 hover:bg-indigo-50"
+          className="mt-2 rounded-md px-3 py-2 text-left text-[10px] text-indigo-300 hover:bg-indigo-50"
         >
           + New list
         </button>

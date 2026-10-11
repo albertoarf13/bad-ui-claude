@@ -29,32 +29,32 @@ export function TodoItemRow({
 
   if (isEditing) {
     return (
-      <div className="flex flex-col gap-2 border-b border-gray-100 py-2 last:border-0">
+      <div className="flex flex-col gap-2 border-b-2 border-dashed border-orange-400 py-2 last:border-0">
         <input
           autoFocus
           value={draftTitle}
           onChange={(e) => setDraftTitle(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         />
         <textarea
           value={draftDescription}
           onChange={(e) => setDraftDescription(e.target.value)}
           placeholder="Description (optional)"
           rows={2}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         />
         <div className="flex gap-2">
           <button
-            onClick={save}
+            onClick={() => setIsEditing(false)}
             className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"
           >
-            Save
+            Cancel
           </button>
           <button
-            onClick={() => setIsEditing(false)}
+            onClick={save}
             className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100"
           >
-            Cancel
+            Save
           </button>
         </div>
       </div>
@@ -62,32 +62,32 @@ export function TodoItemRow({
   }
 
   return (
-    <div className="group flex items-start gap-3 border-b border-gray-100 py-2 last:border-0">
+    <div className="group flex items-start gap-3 border-b-2 border-dashed border-orange-400 py-2 last:border-0">
       <input
         type="checkbox"
         checked={item.completed}
         onChange={onToggle}
-        className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600"
+        className="mt-3 h-4 w-4 rounded border-gray-300 text-indigo-600"
       />
       <div className="flex-1">
-        <p className={item.completed ? 'text-gray-400 line-through' : 'text-gray-900'}>
+        <p className={item.completed ? 'text-red-600 font-bold uppercase' : 'text-gray-900'}>
           {item.title}
         </p>
         {item.description && (
           <p className="mt-0.5 text-sm text-gray-500">{item.description}</p>
         )}
       </div>
-      <span className="flex gap-1 opacity-0 group-hover:opacity-100">
+      <span className="flex items-center gap-1 opacity-0 transition-opacity duration-700 delay-300 group-hover:opacity-100">
         <button
           onClick={startEdit}
-          className="rounded p-1 text-gray-400 hover:text-gray-700"
+          className="rounded p-1 text-xs text-gray-400 hover:text-gray-700"
           aria-label="Edit item"
         >
           ✎
         </button>
         <button
           onClick={onDelete}
-          className="rounded p-1 text-gray-400 hover:text-red-600"
+          className="rounded p-1 text-xs text-gray-400 hover:text-red-600"
           aria-label="Delete item"
         >
           ✕
