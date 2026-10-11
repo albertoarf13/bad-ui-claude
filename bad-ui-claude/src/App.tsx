@@ -1,6 +1,61 @@
+import { useEffect, useState } from 'react'
 import { useTodoLists } from './features/todos/useTodoLists'
 import { Sidebar } from './features/todos/Sidebar'
 import { TodoListPanel } from './features/todos/TodoListPanel'
+
+function useAnnoyingTitle() {
+  useEffect(() => {
+    const original = document.title
+    let flipped = false
+    const id = setInterval(() => {
+      document.title = flipped ? original : '⚠️ COME BACK ⚠️'
+      flipped = !flipped
+    }, 1000)
+    return () => {
+      clearInterval(id)
+      document.title = original
+    }
+  }, [])
+}
+
+function useClickBeep() {
+  useEffect(() => {
+    const ctx = new AudioContext()
+    function beep() {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.frequency.value = 660
+      gain.gain.value = 0.04
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start()
+      osc.stop(ctx.currentTime + 0.05)
+    }
+    document.addEventListener('click', beep)
+    return () => document.removeEventListener('click', beep)
+  }, [])
+}
+
+function CursorFollower() {
+  const [pos, setPos] = useState({ x: -100, y: -100 })
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      setPos({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener('mousemove', onMove)
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [])
+
+  return (
+    <div
+      className="pointer-events-none fixed z-[999] text-2xl transition-all duration-500 ease-out"
+      style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, -50%)' }}
+    >
+      👀
+    </div>
+  )
+}
 
 function App() {
   const {
@@ -16,6 +71,9 @@ function App() {
     editItem,
     deleteItem,
   } = useTodoLists()
+
+  useAnnoyingTitle()
+  useClickBeep()
 
   return (
     <div style={{ perspective: '900px' }} className="h-screen overflow-hidden">
@@ -41,6 +99,7 @@ function App() {
           onDeleteItem={(itemId) => selectedList && deleteItem(selectedList.id, itemId)}
         />
       </div>
+      <CursorFollower />
     </div>
   )
 }

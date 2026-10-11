@@ -66,6 +66,7 @@ export function TodoItemRow({
       <span className="flex items-center gap-1 opacity-0 transition-opacity duration-1000 delay-700 group-hover:opacity-100">
         <button
           onClick={startEdit}
+          title="Good luck catching this button"
           className="dodge rounded p-1 text-xs text-gray-400 hover:text-gray-700"
           aria-label="Edit item"
         >
@@ -73,6 +74,7 @@ export function TodoItemRow({
         </button>
         <button
           onClick={onDelete}
+          title="No confirmation. You'll just have to trust yourself."
           className="dodge rounded p-1 text-xs text-gray-400 hover:text-red-600"
           aria-label="Delete item"
         >

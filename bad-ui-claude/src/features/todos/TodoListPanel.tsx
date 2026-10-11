@@ -29,8 +29,15 @@ function NagBanner() {
 
 function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) => void }) {
   const [title, setTitle] = useState('')
+  const [displayTitle, setDisplayTitle] = useState('')
   const [description, setDescription] = useState('')
   const [armed, setArmed] = useState(false)
+
+  function handleTitleChange(value: string) {
+    setTitle(value)
+    setArmed(false)
+    setTimeout(() => setDisplayTitle(value), 400)
+  }
 
   function submit() {
     if (!title.trim()) return
@@ -40,6 +47,7 @@ function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) =>
     }
     onAdd(title, description)
     setTitle('')
+    setDisplayTitle('')
     setDescription('')
     setArmed(false)
   }
@@ -56,12 +64,10 @@ function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) =>
         className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
       />
       <input
-        value={title}
-        onChange={(e) => {
-          setTitle(e.target.value)
-          setArmed(false)
-        }}
+        value={displayTitle}
+        onChange={(e) => handleTitleChange(e.target.value)}
         placeholder="Add a task..."
+        title="What you type appears ~400ms later. This is intentional."
         className="w-16 rounded-md border border-gray-300 px-3 py-2 text-sm"
       />
       <button
