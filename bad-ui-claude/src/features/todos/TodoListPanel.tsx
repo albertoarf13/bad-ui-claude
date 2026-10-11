@@ -1,0 +1,87 @@
+import { useState } from 'react'
+import type { TodoList } from './types'
+import { TodoItemRow } from './TodoItemRow'
+import { EmptyState } from './EmptyState'
+
+function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) => void }) {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+
+  function submit() {
+    if (!title.trim()) return
+    onAdd(title, description)
+    setTitle('')
+    setDescription('')
+  }
+
+  return (
+    <div className="mb-4 flex gap-2">
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && submit()}
+        placeholder="Add a task..."
+        className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+      <input
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && submit()}
+        placeholder="Description (optional)"
+        className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+      <button
+        onClick={submit}
+        className="rounded-md bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-700"
+      >
+        Add
+      </button>
+    </div>
+  )
+}
+
+export function TodoListPanel({
+  list,
+  hasNoLists,
+  onAddItem,
+  onToggleItem,
+  onEditItem,
+  onDeleteItem,
+}: {
+  list: TodoList | undefined
+  hasNoLists: boolean
+  onAddItem: (title: string, description: string) => void
+  onToggleItem: (itemId: string) => void
+  onEditItem: (itemId: string, title: string, description: string) => void
+  onDeleteItem: (itemId: string) => void
+}) {
+  if (!list) {
+    return (
+      <main className="flex-1 overflow-y-auto p-6">
+        <EmptyState message={hasNoLists ? 'Create a list to get started' : 'Select a list'} />
+      </main>
+    )
+  }
+
+  return (
+    <main className="flex-1 overflow-y-auto p-6">
+      <h2 className="mb-4 text-xl font-semibold text-gray-900">{list.name}</h2>
+      <AddItemForm onAdd={onAddItem} />
+      {list.items.length === 0 ? (
+        <EmptyState message="No items yet — add your first one above" />
+      ) : (
+        <div>
+          {list.items.map((item) => (
+            <TodoItemRow
+              key={item.id}
+              item={item}
+              onToggle={() => onToggleItem(item.id)}
+              onEdit={(title, description) => onEditItem(item.id, title, description)}
+              onDelete={() => onDeleteItem(item.id)}
+            />
+          ))}
+        </div>
+      )}
+    </main>
+  )
+}
