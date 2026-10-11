@@ -26,11 +26,11 @@ function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) =>
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Add a task..."
-        className="w-24 rounded-md border border-gray-300 px-3 py-2 text-sm"
+        className="w-16 rounded-md border border-gray-300 px-3 py-2 text-sm"
       />
       <button
         onClick={submit}
-        className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-white hover:bg-indigo-600 hover:text-white"
+        className="dodge rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-white hover:bg-indigo-600 hover:text-white"
       >
         Add
       </button>
@@ -63,7 +63,7 @@ export function TodoListPanel({
 
   return (
     <main className="flex-1 overflow-y-auto p-6">
-      <h2 className="mb-4 text-sm font-light italic text-gray-400">{list.name}</h2>
+      <h2 className="mb-4 -skew-x-6 text-sm font-light italic text-gray-400">{list.name}</h2>
       <AddItemForm onAdd={onAddItem} />
       {list.items.length === 0 ? (
         <EmptyState message="No items yet — add your first one above" />

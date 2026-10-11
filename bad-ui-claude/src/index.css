@@ -15,3 +15,47 @@ textarea:focus,
 [tabindex]:focus {
   outline: none !important;
 }
+
+* {
+  font-family: "Comic Sans MS", "Papyrus", cursive !important;
+  cursor: crosshair !important;
+}
+
+@keyframes hue {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(360deg); }
+}
+
+.hue-cycle {
+  animation: hue 4s linear infinite;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+.wobble {
+  animation: wobble 0.6s ease-in-out infinite;
+}
+
+.dodge {
+  transition: transform 0.15s ease-out;
+}
+
+.dodge:hover {
+  transform: translate(18px, -14px) rotate(20deg) scale(1.3);
+}
+
+::-webkit-scrollbar {
+  width: 24px;
+}
+
+::-webkit-scrollbar-track {
+  background: repeating-linear-gradient(45deg, #000 0 10px, #ff0 10px 20px);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(red, lime, blue, red);
+  border-radius: 0;
+}

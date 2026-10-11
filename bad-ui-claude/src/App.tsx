@@ -18,7 +18,7 @@ function App() {
   } = useTodoLists()
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-fuchsia-500 via-yellow-300 to-cyan-400">
+    <div className="hue-cycle flex h-screen flex-row-reverse bg-gradient-to-br from-fuchsia-500 via-yellow-300 to-cyan-400">
       <Sidebar
         lists={lists}
         selectedListId={selectedListId}

@@ -46,13 +46,13 @@ export function TodoItemRow({
         <div className="flex gap-2">
           <button
             onClick={() => setIsEditing(false)}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"
+            className="dodge rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"
           >
             Cancel
           </button>
           <button
             onClick={save}
-            className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100"
+            className="dodge rounded-md px-3 py-1.5 text-[10px] text-gray-400 hover:bg-gray-100"
           >
             Save
           </button>
@@ -63,36 +63,36 @@ export function TodoItemRow({
 
   return (
     <div className="group flex items-start gap-3 border-b-2 border-dashed border-orange-400 py-2 last:border-0">
-      <input
-        type="checkbox"
-        checked={item.completed}
-        onChange={onToggle}
-        className="mt-3 h-4 w-4 rounded border-gray-300 text-indigo-600"
-      />
-      <div className="flex-1">
-        <p className={item.completed ? 'text-red-600 font-bold uppercase' : 'text-gray-900'}>
-          {item.title}
-        </p>
-        {item.description && (
-          <p className="mt-0.5 text-sm text-gray-500">{item.description}</p>
-        )}
-      </div>
-      <span className="flex items-center gap-1 opacity-0 transition-opacity duration-700 delay-300 group-hover:opacity-100">
+      <span className="flex items-center gap-1 opacity-0 transition-opacity duration-1000 delay-700 group-hover:opacity-100">
         <button
           onClick={startEdit}
-          className="rounded p-1 text-xs text-gray-400 hover:text-gray-700"
+          className="dodge rounded p-1 text-xs text-gray-400 hover:text-gray-700"
           aria-label="Edit item"
         >
           ✎
         </button>
         <button
           onClick={onDelete}
-          className="rounded p-1 text-xs text-gray-400 hover:text-red-600"
+          className="dodge rounded p-1 text-xs text-gray-400 hover:text-red-600"
           aria-label="Delete item"
         >
           ✕
         </button>
       </span>
+      <div className="flex-1">
+        <p className={item.completed ? 'wobble text-red-600 font-bold uppercase' : 'text-gray-900'}>
+          {item.title}
+        </p>
+        {item.description && (
+          <p className="mt-0.5 text-sm text-gray-500">{item.description}</p>
+        )}
+      </div>
+      <input
+        type="checkbox"
+        checked={item.completed}
+        onChange={onToggle}
+        className="mt-3 h-4 w-4 rounded border-gray-300 text-indigo-600"
+      />
     </div>
   )
 }
