@@ -91,7 +91,8 @@ export function TodoItemRow({
         type="checkbox"
         checked={item.completed}
         onChange={onToggle}
-        className="mt-3 h-4 w-4 rounded border-gray-300 text-indigo-600"
+        style={{ accentColor: 'white' }}
+        className="mt-3 h-4 w-4 rounded border-white text-white opacity-20"
       />
     </div>
   )

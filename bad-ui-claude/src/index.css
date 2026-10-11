@@ -59,3 +59,14 @@ textarea:focus,
   background: linear-gradient(red, lime, blue, red);
   border-radius: 0;
 }
+
+@keyframes marquee {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
+}
+
+.marquee-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 7s linear infinite;
+}
