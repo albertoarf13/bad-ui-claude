@@ -1,5 +1,52 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { TodoList } from './types'
+
+function DeleteCaptchaModal({
+  listName,
+  onConfirm,
+  onCancel,
+}: {
+  listName: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    // The slider slowly slides back down, because trust is for suckers.
+    const id = setInterval(() => {
+      setValue((v) => (v >= 100 ? 100 : Math.max(0, v - 4)))
+    }, 200)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    if (value >= 100) onConfirm()
+  }, [value, onConfirm])
+
+  return (
+    <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black/80">
+      <div className="w-80 rounded-md border-4 border-black bg-white p-6 text-center shadow-2xl">
+        <p className="mb-1 text-sm font-bold">Delete "{listName}"?</p>
+        <p className="mb-4 text-xs text-gray-500">Drag all the way to the right to confirm. Don't let go.</p>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={value}
+          onChange={(e) => setValue(Number(e.target.value))}
+          className="w-full"
+        />
+        <button
+          onClick={onCancel}
+          className="dodge mt-4 w-full rounded-md bg-gray-200 py-2 text-sm font-bold text-gray-700"
+        >
+          Never mind
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function SidebarRow({
   list,
@@ -95,6 +142,7 @@ export function Sidebar({
 }) {
   const [isAdding, setIsAdding] = useState(false)
   const [newName, setNewName] = useState('')
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
 
   function commitAdd() {
     if (newName.trim()) onAdd(newName)
@@ -113,14 +161,20 @@ export function Sidebar({
             isSelected={list.id === selectedListId}
             onSelect={() => onSelect(list.id)}
             onRename={(name) => onRename(list.id, name)}
-            onDelete={() => {
-              if (window.confirm(`Delete "${list.name}" and all its items?`)) {
-                onDelete(list.id)
-              }
-            }}
+            onDelete={() => setPendingDelete({ id: list.id, name: list.name })}
           />
         ))}
       </div>
+      {pendingDelete && (
+        <DeleteCaptchaModal
+          listName={pendingDelete.name}
+          onConfirm={() => {
+            onDelete(pendingDelete.id)
+            setPendingDelete(null)
+          }}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
       {isAdding ? (
         <input
           autoFocus

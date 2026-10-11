@@ -15,6 +15,7 @@ export function TodoItemRow({
   const [isEditing, setIsEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(item.title)
   const [draftDescription, setDraftDescription] = useState(item.description)
+  const [checkboxFlee, setCheckboxFlee] = useState({ x: 30, y: -20 })
 
   function startEdit() {
     setDraftTitle(item.title)
@@ -93,8 +94,15 @@ export function TodoItemRow({
         type="checkbox"
         checked={item.completed}
         onChange={onToggle}
-        style={{ accentColor: 'white' }}
-        className="mt-3 h-4 w-4 rounded border-white text-white opacity-20"
+        onMouseEnter={() =>
+          setCheckboxFlee({ x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 60 })
+        }
+        style={{
+          accentColor: 'white',
+          '--flee-x': `${checkboxFlee.x}px`,
+          '--flee-y': `${checkboxFlee.y}px`,
+        } as React.CSSProperties}
+        className="dodge-hard mt-3 h-4 w-4 rounded border-white text-white opacity-20"
       />
     </div>
   )

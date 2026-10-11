@@ -19,6 +19,27 @@ textarea:focus,
 * {
   font-family: "Comic Sans MS", "Papyrus", cursive !important;
   cursor: crosshair !important;
+  user-select: none !important;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.dodge-hard {
+  transition: transform 0.08s ease-out;
+}
+
+.dodge-hard:hover {
+  transform: translate(var(--flee-x, 40px), var(--flee-y, -30px)) scale(1.4);
 }
 
 @keyframes hue {

@@ -21,10 +21,13 @@ function useAnnoyingTitle() {
 function useClickBeep() {
   useEffect(() => {
     const ctx = new AudioContext()
+    let clickCount = 0
     function beep() {
+      clickCount += 1
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
-      osc.frequency.value = 660
+      // Gets higher-pitched with every single click, forever. Never resets.
+      osc.frequency.value = Math.min(660 + clickCount * 35, 5000)
       gain.gain.value = 0.04
       osc.connect(gain)
       gain.connect(ctx.destination)
@@ -34,6 +37,62 @@ function useClickBeep() {
     document.addEventListener('click', beep)
     return () => document.removeEventListener('click', beep)
   }, [])
+}
+
+function useNoRightClick() {
+  const [showToast, setShowToast] = useState(false)
+
+  useEffect(() => {
+    function onContextMenu(e: MouseEvent) {
+      e.preventDefault()
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 1800)
+    }
+    document.addEventListener('contextmenu', onContextMenu)
+    return () => document.removeEventListener('contextmenu', onContextMenu)
+  }, [])
+
+  return showToast
+}
+
+function AreYouStillThereModal() {
+  const [showing, setShowing] = useState(false)
+  const [flee, setFlee] = useState({ x: 40, y: -30 })
+
+  useEffect(() => {
+    let idleTimer: ReturnType<typeof setTimeout>
+    function resetIdleTimer() {
+      if (showing) return
+      clearTimeout(idleTimer)
+      idleTimer = setTimeout(() => setShowing(true), 20000)
+    }
+    resetIdleTimer()
+    window.addEventListener('mousemove', resetIdleTimer)
+    window.addEventListener('keydown', resetIdleTimer)
+    return () => {
+      clearTimeout(idleTimer)
+      window.removeEventListener('mousemove', resetIdleTimer)
+      window.removeEventListener('keydown', resetIdleTimer)
+    }
+  }, [showing])
+
+  if (!showing) return null
+
+  return (
+    <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black/80">
+      <div className="w-72 rounded-md border-4 border-black bg-white p-6 text-center shadow-2xl">
+        <p className="mb-4 text-sm font-bold">Are you still there?</p>
+        <button
+          onMouseEnter={() => setFlee({ x: (Math.random() - 0.5) * 220, y: (Math.random() - 0.5) * 160 })}
+          onClick={() => setShowing(false)}
+          style={{ '--flee-x': `${flee.x}px`, '--flee-y': `${flee.y}px` } as React.CSSProperties}
+          className="dodge-hard rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+        >
+          I'm here!
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function FakeUpdateModal() {
@@ -118,6 +177,7 @@ function App() {
 
   useAnnoyingTitle()
   useClickBeep()
+  const showNoRightClickToast = useNoRightClick()
 
   return (
     <div style={{ perspective: '900px' }} className="invert-flash h-screen overflow-hidden">
@@ -145,6 +205,12 @@ function App() {
       </div>
       <CursorFollower />
       <FakeUpdateModal />
+      <AreYouStillThereModal />
+      {showNoRightClickToast && (
+        <div className="shake fixed bottom-20 right-4 z-[1002] rounded-md border-4 border-black bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-2xl">
+          Nice try. Right-click is disabled.
+        </div>
+      )}
     </div>
   )
 }
