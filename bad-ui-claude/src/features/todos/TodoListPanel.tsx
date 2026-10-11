@@ -27,6 +27,36 @@ function NagBanner() {
   )
 }
 
+function AdInterstitial({ onSkip }: { onSkip: () => void }) {
+  const [secondsLeft, setSecondsLeft] = useState(5)
+
+  useEffect(() => {
+    if (secondsLeft <= 0) return
+    const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [secondsLeft])
+
+  return (
+    <div className="fixed inset-0 z-[1006] flex items-center justify-center bg-black">
+      <div className="w-96 rounded-md border-4 border-yellow-400 bg-gradient-to-br from-indigo-700 to-purple-800 p-8 text-center text-white shadow-2xl">
+        <p className="mb-2 text-xs uppercase tracking-widest text-yellow-300">Advertisement</p>
+        <p className="wobble mb-4 text-2xl font-black">BUY NOW!! 70% OFF!!</p>
+        <p className="mb-6 text-sm text-indigo-200">You added 3 whole to-do items. Here's an ad for that.</p>
+        {secondsLeft > 0 ? (
+          <p className="text-xs text-gray-300">Skip in {secondsLeft}...</p>
+        ) : (
+          <button
+            onClick={onSkip}
+            className="dodge rounded-md bg-white px-4 py-2 text-sm font-bold text-gray-900"
+          >
+            Skip Ad ✕
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function FakeViewerBadge() {
   const [count, setCount] = useState(() => 1 + Math.floor(Math.random() * 4))
 
@@ -169,6 +199,8 @@ export function TodoListPanel({
   const [switching, setSwitching] = useState(false)
   const [undoToast, setUndoToast] = useState<string | null>(null)
   const [confettiPieces, setConfettiPieces] = useState<ConfettiPiece[]>([])
+  const [itemsAddedCount, setItemsAddedCount] = useState(0)
+  const [showAd, setShowAd] = useState(false)
   const lastListId = useRef<string | undefined>(undefined)
   const mainRef = useRef<HTMLDivElement>(null)
 
@@ -176,6 +208,9 @@ export function TodoListPanel({
     onAddItem(title, description)
     setConfettiPieces(generateConfettiPieces())
     setTimeout(() => setConfettiPieces([]), 2500)
+    const next = itemsAddedCount + 1
+    setItemsAddedCount(next)
+    if (next % 3 === 0) setShowAd(true)
   }
 
   function handleDeleteItem(itemId: string, title: string) {
@@ -254,6 +289,7 @@ export function TodoListPanel({
       <NagBanner />
       <ScrollToBottomButton targetRef={mainRef} />
       <ConfettiBurst pieces={confettiPieces} />
+      {showAd && <AdInterstitial onSkip={() => setShowAd(false)} />}
       {undoToast && (
         <div className="dodge fixed bottom-20 right-4 z-50 flex items-center gap-3 rounded-md border-4 border-black bg-gray-900 px-4 py-3 text-xs font-bold text-white shadow-2xl">
           <span>"{undoToast}" deleted.</span>

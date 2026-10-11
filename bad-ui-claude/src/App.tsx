@@ -141,22 +141,41 @@ function FakeUpdateModal() {
 
 function CursorFollower() {
   const [pos, setPos] = useState({ x: -100, y: -100 })
+  // Every click recruits one more eyeball into the swarm. They never leave.
+  const [followerCount, setFollowerCount] = useState(1)
 
   useEffect(() => {
     function onMove(e: MouseEvent) {
       setPos({ x: e.clientX, y: e.clientY })
     }
+    function onClick() {
+      setFollowerCount((c) => Math.min(c + 1, 15))
+    }
     window.addEventListener('mousemove', onMove)
-    return () => window.removeEventListener('mousemove', onMove)
+    window.addEventListener('click', onClick)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('click', onClick)
+    }
   }, [])
 
   return (
-    <div
-      className="pointer-events-none fixed z-[999] text-2xl transition-all duration-500 ease-out"
-      style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, -50%)' }}
-    >
-      👀
-    </div>
+    <>
+      {Array.from({ length: followerCount }, (_, i) => (
+        <div
+          key={i}
+          className="pointer-events-none fixed z-[999] text-2xl ease-out"
+          style={{
+            left: pos.x,
+            top: pos.y,
+            transform: 'translate(-50%, -50%)',
+            transition: `left ${300 + i * 80}ms, top ${300 + i * 80}ms`,
+          }}
+        >
+          👀
+        </div>
+      ))}
+    </>
   )
 }
 
@@ -340,6 +359,63 @@ function LiveChatWidget() {
   )
 }
 
+function TrialExpiredModal() {
+  const [showing, setShowing] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowing(true), 90000)
+    return () => clearTimeout(t)
+  }, [])
+
+  if (!showing) return null
+
+  return (
+    <div className="fixed inset-0 z-[1007] flex items-center justify-center bg-black/90">
+      <div className="w-80 rounded-md border-4 border-black bg-white p-6 text-center shadow-2xl">
+        <p className="mb-2 text-lg font-black">Your Free Trial Has Expired</p>
+        <p className="mb-4 text-xs text-gray-500">
+          You've used this to-do app for over a minute. That's premium behavior.
+        </p>
+        <button className="dodge mb-3 w-full rounded-md bg-indigo-600 py-3 text-sm font-black text-white">
+          Subscribe for $9.99/mo
+        </button>
+        <button onClick={() => setShowing(false)} className="text-[8px] text-gray-300 underline">
+          continue with limited features (not recommended)
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const BAD_ADVICE = [
+  'Pro tip: Delete all your lists to improve performance.',
+  'Did you know? Unchecked items get lonely. Check them even if unfinished.',
+  "Fun fact: there's no undo. There never was.",
+  'Tip: renaming a list twice fixes typos. (It does not.)',
+  'Reminder: this app has never saved anything. Refreshing the page clears everything.',
+]
+
+function AdviceMascot() {
+  const [tip, setTip] = useState<string | null>(null)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTip(BAD_ADVICE[Math.floor(Math.random() * BAD_ADVICE.length)])
+      setTimeout(() => setTip(null), 6000)
+    }, 70000)
+    return () => clearInterval(id)
+  }, [])
+
+  if (!tip) return null
+
+  return (
+    <div className="fixed left-4 top-4 z-[900] w-64 rounded-md border-4 border-black bg-white p-3 text-xs shadow-2xl">
+      <p className="mb-1 font-bold">🧙 Wizard Tip</p>
+      <p className="text-gray-700">{tip}</p>
+    </div>
+  )
+}
+
 function App() {
   const {
     lists,
@@ -390,6 +466,8 @@ function App() {
       <CriticalErrorModal />
       <PrizePopupTrap />
       <LiveChatWidget />
+      <TrialExpiredModal />
+      <AdviceMascot />
       {showNoRightClickToast && (
         <div className="shake fixed bottom-20 right-4 z-[1002] rounded-md border-4 border-black bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-2xl">
           Nice try. Right-click is disabled.
