@@ -27,6 +27,34 @@ function NagBanner() {
   )
 }
 
+function FakeViewerBadge() {
+  const [count, setCount] = useState(() => 1 + Math.floor(Math.random() * 4))
+
+  useEffect(() => {
+    const id = setInterval(() => setCount(1 + Math.floor(Math.random() * 6)), 2500)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <p className="mb-2 text-[10px] font-bold uppercase text-gray-400">
+      👀 {count} {count === 1 ? 'person' : 'people'} viewing this list right now
+    </p>
+  )
+}
+
+function ScrollToBottomButton({ targetRef }: { targetRef: React.RefObject<HTMLDivElement | null> }) {
+  return (
+    <button
+      onClick={() =>
+        targetRef.current?.scrollTo({ top: targetRef.current.scrollHeight, behavior: 'smooth' })
+      }
+      className="dodge fixed bottom-4 left-4 z-40 rounded-full border-2 border-black bg-white px-3 py-2 text-xs font-bold shadow-lg"
+    >
+      ↑ Scroll to top
+    </button>
+  )
+}
+
 function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) => void }) {
   const [title, setTitle] = useState('')
   const [displayTitle, setDisplayTitle] = useState('')
@@ -98,8 +126,25 @@ export function TodoListPanel({
   onDeleteItem: (itemId: string) => void
 }) {
   const [switching, setSwitching] = useState(false)
+  const [undoToast, setUndoToast] = useState<string | null>(null)
   const lastListId = useRef<string | undefined>(undefined)
   const mainRef = useRef<HTMLDivElement>(null)
+
+  function handleDeleteItem(itemId: string, title: string) {
+    onDeleteItem(itemId)
+    setUndoToast(title)
+    setTimeout(() => setUndoToast((current) => (current === title ? null : current)), 4000)
+  }
+
+  function handleUndoClick() {
+    // "Undo" doesn't restore the deleted item. It never did. Instead it
+    // just toggles a random remaining item, because closure is a myth.
+    if (list && list.items.length > 0) {
+      const randomItem = list.items[Math.floor(Math.random() * list.items.length)]
+      onToggleItem(randomItem.id)
+    }
+    setUndoToast(null)
+  }
 
   useEffect(() => {
     const prev = lastListId.current
@@ -141,6 +186,7 @@ export function TodoListPanel({
         </span>
       </div>
       <h2 className="glitch mb-4 -skew-x-6 text-sm font-light italic text-gray-400">{list.name}</h2>
+      <FakeViewerBadge />
       <AddItemForm onAdd={onAddItem} />
       {list.items.length === 0 ? (
         <EmptyState message="No items yet — add your first one above" />
@@ -152,12 +198,21 @@ export function TodoListPanel({
               item={item}
               onToggle={() => onToggleItem(item.id)}
               onEdit={(title, description) => onEditItem(item.id, title, description)}
-              onDelete={() => onDeleteItem(item.id)}
+              onDelete={() => handleDeleteItem(item.id, item.title)}
             />
           ))}
         </div>
       )}
       <NagBanner />
+      <ScrollToBottomButton targetRef={mainRef} />
+      {undoToast && (
+        <div className="dodge fixed bottom-20 right-4 z-50 flex items-center gap-3 rounded-md border-4 border-black bg-gray-900 px-4 py-3 text-xs font-bold text-white shadow-2xl">
+          <span>"{undoToast}" deleted.</span>
+          <button onClick={handleUndoClick} className="rounded bg-white px-2 py-1 text-gray-900">
+            Undo
+          </button>
+        </div>
+      )}
     </main>
   )
 }

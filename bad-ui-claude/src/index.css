@@ -42,6 +42,15 @@ textarea:focus,
   transform: translate(var(--flee-x, 40px), var(--flee-y, -30px)) scale(1.4);
 }
 
+@keyframes zoom-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+
+.zoom-breathe {
+  animation: zoom-breathe 6s ease-in-out infinite;
+}
+
 @keyframes hue {
   from { filter: hue-rotate(0deg); }
   to { filter: hue-rotate(360deg); }

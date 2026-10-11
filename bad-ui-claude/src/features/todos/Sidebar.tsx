@@ -48,6 +48,15 @@ function DeleteCaptchaModal({
   )
 }
 
+function scrambleSlightly(name: string) {
+  // Renaming is a privilege, not a right. One random typo, every time.
+  if (name.length < 2) return name
+  const chars = name.split('')
+  const i = Math.floor(Math.random() * (chars.length - 1))
+  ;[chars[i], chars[i + 1]] = [chars[i + 1], chars[i]]
+  return chars.join('')
+}
+
 function SidebarRow({
   list,
   isSelected,
@@ -70,7 +79,7 @@ function SidebarRow({
   }
 
   function commitRename() {
-    onRename(draftName)
+    onRename(scrambleSlightly(draftName))
     setIsRenaming(false)
   }
 

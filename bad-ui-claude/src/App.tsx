@@ -160,6 +160,26 @@ function CursorFollower() {
   )
 }
 
+function LowBatteryToast() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setVisible(true)
+      setTimeout(() => setVisible(false), 5000)
+    }, 45000)
+    return () => clearInterval(id)
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <div className="shake fixed top-4 right-4 z-[1002] rounded-md border-4 border-black bg-red-700 px-4 py-3 text-sm font-bold text-white shadow-2xl">
+      🔋 Battery at 2%. This is a website. You do not need to worry about this.
+    </div>
+  )
+}
+
 function App() {
   const {
     lists,
@@ -180,7 +200,7 @@ function App() {
   const showNoRightClickToast = useNoRightClick()
 
   return (
-    <div style={{ perspective: '900px' }} className="invert-flash h-screen overflow-hidden">
+    <div style={{ perspective: '900px' }} className="invert-flash zoom-breathe h-screen overflow-hidden">
       <div className="hue-cycle flex h-screen flex-row-reverse bg-gradient-to-br from-fuchsia-500 via-yellow-300 to-cyan-400 [transform:rotateX(3deg)_rotateY(-4deg)]">
         <Sidebar
           lists={lists}
@@ -206,6 +226,7 @@ function App() {
       <CursorFollower />
       <FakeUpdateModal />
       <AreYouStillThereModal />
+      <LowBatteryToast />
       {showNoRightClickToast && (
         <div className="shake fixed bottom-20 right-4 z-[1002] rounded-md border-4 border-black bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-2xl">
           Nice try. Right-click is disabled.
