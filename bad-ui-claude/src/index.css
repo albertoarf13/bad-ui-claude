@@ -70,3 +70,23 @@ textarea:focus,
   white-space: nowrap;
   animation: marquee 7s linear infinite;
 }
+
+@keyframes glitch {
+  0%, 92% { text-shadow: none; transform: translate(0, 0); }
+  93% { text-shadow: -2px 0 red, 2px 0 cyan; transform: translate(-1px, 1px); }
+  96% { text-shadow: 2px 0 red, -2px 0 cyan; transform: translate(1px, -1px); }
+  100% { text-shadow: none; transform: translate(0, 0); }
+}
+
+.glitch {
+  animation: glitch 2.5s steps(1) infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { width: 12rem; }
+  50% { width: 15rem; }
+}
+
+.breathe {
+  animation: breathe 3s ease-in-out infinite;
+}

@@ -1,7 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { TodoList } from './types'
 import { TodoItemRow } from './TodoItemRow'
 import { EmptyState } from './EmptyState'
+
+function NagBanner() {
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    if (visible) return
+    const t = setTimeout(() => setVisible(true), 4000)
+    return () => clearTimeout(t)
+  }, [visible])
+
+  if (!visible) return null
+
+  return (
+    <div className="dodge fixed bottom-4 right-4 z-50 w-56 rounded-md border-4 border-black bg-lime-300 p-3 text-xs font-bold shadow-xl">
+      🍪 This site uses cookies. (It doesn't. We just like asking.)
+      <button
+        onClick={() => setVisible(false)}
+        className="dodge mt-2 block w-full rounded bg-black py-1 text-white"
+      >
+        Whatever
+      </button>
+    </div>
+  )
+}
 
 function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) => void }) {
   const [title, setTitle] = useState('')
@@ -67,10 +91,32 @@ export function TodoListPanel({
   onEditItem: (itemId: string, title: string, description: string) => void
   onDeleteItem: (itemId: string) => void
 }) {
-  if (!list) {
+  const [switching, setSwitching] = useState(false)
+  const lastListId = useRef<string | undefined>(undefined)
+  const mainRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const prev = lastListId.current
+    lastListId.current = list?.id
+    if (prev !== undefined && prev !== list?.id) {
+      setSwitching(true)
+      const t = setTimeout(() => setSwitching(false), 650)
+      return () => clearTimeout(t)
+    }
+  }, [list?.id])
+
+  function reverseScroll(e: React.WheelEvent<HTMLDivElement>) {
+    e.preventDefault()
+    e.currentTarget.scrollTop -= e.deltaY
+  }
+
+  if (!list || switching) {
     return (
-      <main className="flex-1 overflow-y-auto p-6">
-        <EmptyState message={hasNoLists ? 'Create a list to get started' : 'Select a list'} />
+      <main ref={mainRef} onWheel={reverseScroll} className="flex-1 overflow-y-auto p-6">
+        <EmptyState
+          message={switching ? 'Loading… (this is fake, there was no reason to wait)' : hasNoLists ? 'Create a list to get started' : 'Select a list'}
+        />
+        <NagBanner />
       </main>
     )
   }
@@ -78,13 +124,13 @@ export function TodoListPanel({
   const shuffledItems = [...list.items].sort(() => Math.random() - 0.5)
 
   return (
-    <main className="flex-1 overflow-y-auto p-6">
+    <main ref={mainRef} onWheel={reverseScroll} className="flex-1 overflow-y-auto p-6">
       <div className="mb-3 overflow-hidden whitespace-nowrap border-2 border-black bg-yellow-300 py-1 text-xs font-bold">
         <span className="marquee-text">
           ⚠ ITEM ORDER IS NOT GUARANTEED AND NEVER WILL BE ⚠ PLEASE DO NOT RELY ON THIS APP FOR ANYTHING IMPORTANT ⚠
         </span>
       </div>
-      <h2 className="mb-4 -skew-x-6 text-sm font-light italic text-gray-400">{list.name}</h2>
+      <h2 className="glitch mb-4 -skew-x-6 text-sm font-light italic text-gray-400">{list.name}</h2>
       <AddItemForm onAdd={onAddItem} />
       {list.items.length === 0 ? (
         <EmptyState message="No items yet — add your first one above" />
@@ -101,6 +147,7 @@ export function TodoListPanel({
           ))}
         </div>
       )}
+      <NagBanner />
     </main>
   )
 }
