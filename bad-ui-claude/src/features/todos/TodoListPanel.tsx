@@ -3,8 +3,45 @@ import type { TodoList } from './types'
 import { TodoItemRow } from './TodoItemRow'
 import { EmptyState } from './EmptyState'
 
+function CookiePreferenceCenter({ onClose }: { onClose: () => void }) {
+  const [analytics, setAnalytics] = useState(true)
+  const [marketing, setMarketing] = useState(true)
+  const [mysterious, setMysterious] = useState(true)
+
+  return (
+    <div className="fixed inset-0 z-[1009] flex items-center justify-center bg-black/80">
+      <div className="w-80 rounded-md border-4 border-black bg-white p-6 text-xs shadow-2xl">
+        <p className="mb-3 text-sm font-bold">Manage Cookie Preferences</p>
+        <label className="mb-2 flex items-center justify-between opacity-50">
+          <span>Strictly Necessary</span>
+          <input type="checkbox" checked disabled />
+        </label>
+        <label className="mb-2 flex items-center justify-between">
+          <span>Analytics</span>
+          <input type="checkbox" checked={analytics} onChange={() => setAnalytics((v) => !v)} />
+        </label>
+        <label className="mb-2 flex items-center justify-between">
+          <span>Marketing</span>
+          <input type="checkbox" checked={marketing} onChange={() => setMarketing((v) => !v)} />
+        </label>
+        <label className="mb-4 flex items-center justify-between">
+          <span>Mysterious</span>
+          <input type="checkbox" checked={mysterious} onChange={() => setMysterious((v) => !v)} />
+        </label>
+        <p className="mb-3 text-[9px] text-gray-400">
+          None of this does anything. There are no cookies. Your choices will not be remembered.
+        </p>
+        <button onClick={onClose} className="dodge w-full rounded-md bg-indigo-600 py-2 text-sm font-bold text-white">
+          Save Preferences
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function NagBanner() {
   const [visible, setVisible] = useState(true)
+  const [showPreferences, setShowPreferences] = useState(false)
 
   useEffect(() => {
     if (visible) return
@@ -15,15 +52,31 @@ function NagBanner() {
   if (!visible) return null
 
   return (
-    <div className="dodge fixed bottom-4 right-4 z-50 w-56 rounded-md border-4 border-black bg-lime-300 p-3 text-xs font-bold shadow-xl">
-      🍪 This site uses cookies. (It doesn't. We just like asking.)
-      <button
-        onClick={() => setVisible(false)}
-        className="dodge mt-2 block w-full rounded bg-black py-1 text-white"
-      >
-        Whatever
-      </button>
-    </div>
+    <>
+      <div className="dodge fixed bottom-4 right-4 z-50 w-56 rounded-md border-4 border-black bg-lime-300 p-3 text-xs font-bold shadow-xl">
+        🍪 This site uses cookies. (It doesn't. We just like asking.)
+        <button
+          onClick={() => setVisible(false)}
+          className="dodge mt-2 block w-full rounded bg-black py-1 text-white"
+        >
+          Whatever
+        </button>
+        <button
+          onClick={() => setShowPreferences(true)}
+          className="mt-1 block w-full text-center text-[9px] underline opacity-60"
+        >
+          Manage preferences
+        </button>
+      </div>
+      {showPreferences && (
+        <CookiePreferenceCenter
+          onClose={() => {
+            setShowPreferences(false)
+            setVisible(false)
+          }}
+        />
+      )}
+    </>
   )
 }
 
@@ -72,6 +125,60 @@ function FakeViewerBadge() {
   )
 }
 
+function ExportDataButton({ listName }: { listName: string }) {
+  function handleExport() {
+    const content = `Your data has intentionally not been included.\nEnjoy the void.\n\n(This file is about "${listName}" but contains nothing useful.)\n`
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'export.txt'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <button
+      onClick={handleExport}
+      className="dodge mb-2 rounded-md border border-gray-300 px-2 py-1 text-[10px] font-bold text-gray-400 hover:bg-gray-100"
+    >
+      ⬇ Export my data
+    </button>
+  )
+}
+
+const FAKE_DISTRACTIONS = ['📧 You have mail!', "📱 Someone liked your task", "🔔 Don't forget to focus!"]
+
+function FocusModeButton() {
+  const [toast, setToast] = useState<string | null>(null)
+
+  function handleClick() {
+    setToast('🧘 Entering focus mode...')
+    FAKE_DISTRACTIONS.forEach((msg, i) => {
+      setTimeout(() => setToast(msg), 700 + i * 600)
+    })
+    setTimeout(() => setToast(null), 700 + FAKE_DISTRACTIONS.length * 600 + 1500)
+  }
+
+  return (
+    <>
+      <button
+        onClick={handleClick}
+        className="dodge mb-2 ml-2 rounded-md border border-gray-300 px-2 py-1 text-[10px] font-bold text-gray-400 hover:bg-gray-100"
+      >
+        🧘 Focus Mode
+      </button>
+      {toast && (
+        <div className="shake fixed bottom-56 right-4 z-50 rounded-md border-4 border-black bg-indigo-700 px-4 py-2 text-xs font-bold text-white shadow-2xl">
+          {toast}
+        </div>
+      )}
+    </>
+  )
+}
+
 function ScrollToBottomButton({ targetRef }: { targetRef: React.RefObject<HTMLDivElement | null> }) {
   return (
     <button
@@ -82,6 +189,22 @@ function ScrollToBottomButton({ targetRef }: { targetRef: React.RefObject<HTMLDi
     >
       ↑ Scroll to top
     </button>
+  )
+}
+
+const ACHIEVEMENTS = {
+  add: '🏆 Achievement Unlocked: Procrastination Postponed!',
+  toggle: '🏆 Achievement Unlocked: Clicked a Checkbox!',
+  delete: '🏆 Achievement Unlocked: Ruthless!',
+}
+
+function AchievementToast({ text }: { text: string | null }) {
+  if (!text) return null
+
+  return (
+    <div className="fixed left-1/2 top-16 z-[950] -translate-x-1/2 rounded-md border-2 border-black bg-yellow-300 px-4 py-2 text-xs font-bold shadow-xl">
+      {text}
+    </div>
   )
 }
 
@@ -165,6 +288,11 @@ function AddItemForm({ onAdd }: { onAdd: (title: string, description: string) =>
       <input
         value={displayTitle}
         onChange={(e) => handleTitleChange(e.target.value)}
+        onPaste={(e) => {
+          // Pasting is apparently cheating. It gets reversed.
+          e.preventDefault()
+          handleTitleChange(e.clipboardData.getData('text').split('').reverse().join(''))
+        }}
         placeholder="Add a task..."
         title="What you type appears ~400ms later. This is intentional."
         className="w-16 rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -201,8 +329,14 @@ export function TodoListPanel({
   const [confettiPieces, setConfettiPieces] = useState<ConfettiPiece[]>([])
   const [itemsAddedCount, setItemsAddedCount] = useState(0)
   const [showAd, setShowAd] = useState(false)
+  const [achievement, setAchievement] = useState<string | null>(null)
   const lastListId = useRef<string | undefined>(undefined)
   const mainRef = useRef<HTMLDivElement>(null)
+
+  function showAchievement(key: keyof typeof ACHIEVEMENTS) {
+    setAchievement(ACHIEVEMENTS[key])
+    setTimeout(() => setAchievement(null), 2500)
+  }
 
   function handleAddItem(title: string, description: string) {
     onAddItem(title, description)
@@ -211,12 +345,19 @@ export function TodoListPanel({
     const next = itemsAddedCount + 1
     setItemsAddedCount(next)
     if (next % 3 === 0) setShowAd(true)
+    showAchievement('add')
+  }
+
+  function handleToggleItem(itemId: string) {
+    onToggleItem(itemId)
+    showAchievement('toggle')
   }
 
   function handleDeleteItem(itemId: string, title: string) {
     onDeleteItem(itemId)
     setUndoToast(title)
     setTimeout(() => setUndoToast((current) => (current === title ? null : current)), 4000)
+    showAchievement('delete')
   }
 
   function handleUndoClick() {
@@ -270,6 +411,10 @@ export function TodoListPanel({
       </div>
       <h2 className="glitch mb-4 -skew-x-6 text-sm font-light italic text-gray-400">{list.name}</h2>
       <FakeViewerBadge />
+      <div>
+        <ExportDataButton listName={list.name} />
+        <FocusModeButton />
+      </div>
       <AddItemForm onAdd={handleAddItem} />
       {list.items.length === 0 ? (
         <EmptyState message="No items yet — add your first one above" />
@@ -279,7 +424,7 @@ export function TodoListPanel({
             <TodoItemRow
               key={item.id}
               item={item}
-              onToggle={() => onToggleItem(item.id)}
+              onToggle={() => handleToggleItem(item.id)}
               onEdit={(title, description) => onEditItem(item.id, title, description)}
               onDelete={() => handleDeleteItem(item.id, item.title)}
             />
@@ -290,6 +435,7 @@ export function TodoListPanel({
       <ScrollToBottomButton targetRef={mainRef} />
       <ConfettiBurst pieces={confettiPieces} />
       {showAd && <AdInterstitial onSkip={() => setShowAd(false)} />}
+      <AchievementToast text={achievement} />
       {undoToast && (
         <div className="dodge fixed bottom-20 right-4 z-50 flex items-center gap-3 rounded-md border-4 border-black bg-gray-900 px-4 py-3 text-xs font-bold text-white shadow-2xl">
           <span>"{undoToast}" deleted.</span>

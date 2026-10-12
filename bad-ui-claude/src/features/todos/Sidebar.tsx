@@ -48,6 +48,61 @@ function DeleteCaptchaModal({
   )
 }
 
+const TOS_SECTIONS = [
+  'Section 1: By creating a list, you agree that this to-do app is allowed to be this annoying.',
+  'Section 2: You will not blame us for any scrambled list names.',
+  'Section 3: Checkboxes reserve the right to flee from your cursor at any time.',
+  'Section 4: "Undo" is a figure of speech, not a feature.',
+  'Section 5: Item order was never, and will never be, guaranteed.',
+  'Section 6: Advertisements may appear between your to-do items. This is normal.',
+  'Section 7: Your free trial expires whenever we feel like it.',
+  'Section 8: The wizard mascot is not a licensed productivity consultant.',
+  'Section 9: Clicking the wrong list is a feature, not a bug.',
+  'Section 10: Nothing in this app is ever actually saved. We just say "Saving…" forever.',
+  'Section 11: Right-clicking is a privilege this app has revoked.',
+  'Section 12: Escape does not mean escape.',
+  'Section 13: You cannot skip this. You must scroll. All the way.',
+  'Section 14: You have reached the bottom. The button below is now real.',
+]
+
+function TermsOfServiceWall({ onAgree }: { onAgree: () => void }) {
+  const [scrolledToBottom, setScrolledToBottom] = useState(false)
+
+  function handleScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) {
+      setScrolledToBottom(true)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/90">
+      <div className="flex max-h-[80vh] w-96 flex-col rounded-md border-4 border-black bg-white p-6 shadow-2xl">
+        <p className="mb-2 text-sm font-bold">Terms of Service</p>
+        <div
+          onScroll={handleScroll}
+          className="mb-4 flex-1 overflow-y-auto border border-gray-300 p-3 text-[10px] text-gray-500"
+        >
+          {TOS_SECTIONS.map((section) => (
+            <p key={section} className="mb-3">
+              {section}
+            </p>
+          ))}
+        </div>
+        <button
+          disabled={!scrolledToBottom}
+          onClick={onAgree}
+          className={`w-full rounded-md py-2 text-sm font-bold ${
+            scrolledToBottom ? 'bg-indigo-600 text-white' : 'cursor-not-allowed bg-gray-200 text-gray-400'
+          }`}
+        >
+          I Agree
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function scrambleSlightly(name: string) {
   // Renaming is a privilege, not a right. One random typo, every time.
   if (name.length < 2) return name
@@ -152,11 +207,50 @@ export function Sidebar({
   const [isAdding, setIsAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
+  const [showTos, setShowTos] = useState(false)
+  const [tosAccepted, setTosAccepted] = useState(false)
+  const [listToast, setListToast] = useState<{ name: string; phase: 'confirm' | 'restoring' | 'kidding' } | null>(
+    null,
+  )
+  const [listArmed, setListArmed] = useState(false)
 
   function commitAdd() {
-    if (newName.trim()) onAdd(newName)
+    if (!newName.trim()) return
+    if (!listArmed) {
+      setListArmed(true)
+      return
+    }
+    onAdd(newName)
     setNewName('')
     setIsAdding(false)
+    setListArmed(false)
+  }
+
+  function handleNewListClick() {
+    if (tosAccepted) {
+      setIsAdding(true)
+    } else {
+      setShowTos(true)
+    }
+  }
+
+  function handleConfirmDeleteList() {
+    if (!pendingDelete) return
+    onDelete(pendingDelete.id)
+    setListToast({ name: pendingDelete.name, phase: 'confirm' })
+    setPendingDelete(null)
+    setTimeout(() => {
+      setListToast((t) => (t?.phase === 'confirm' ? null : t))
+    }, 5000)
+  }
+
+  function handleUndoListClick() {
+    // The undo button restores nothing. It just makes you wait to find out.
+    setListToast((t) => (t ? { ...t, phase: 'restoring' } : t))
+    setTimeout(() => {
+      setListToast((t) => (t ? { ...t, phase: 'kidding' } : t))
+      setTimeout(() => setListToast(null), 2500)
+    }, 1500)
   }
 
   return (
@@ -168,7 +262,15 @@ export function Sidebar({
             key={list.id}
             list={list}
             isSelected={list.id === selectedListId}
-            onSelect={() => onSelect(list.id)}
+            onSelect={() => {
+              // One in five clicks lands on a different list entirely. Keeps you alert.
+              if (lists.length > 1 && Math.random() < 0.2) {
+                const others = lists.filter((l) => l.id !== list.id)
+                onSelect(others[Math.floor(Math.random() * others.length)].id)
+              } else {
+                onSelect(list.id)
+              }
+            }}
             onRename={(name) => onRename(list.id, name)}
             onDelete={() => setPendingDelete({ id: list.id, name: list.name })}
           />
@@ -177,36 +279,62 @@ export function Sidebar({
       {pendingDelete && (
         <DeleteCaptchaModal
           listName={pendingDelete.name}
-          onConfirm={() => {
-            onDelete(pendingDelete.id)
-            setPendingDelete(null)
-          }}
+          onConfirm={handleConfirmDeleteList}
           onCancel={() => setPendingDelete(null)}
         />
+      )}
+      {listToast && (
+        <div className="dodge fixed bottom-36 right-4 z-50 flex items-center gap-3 rounded-md border-4 border-black bg-gray-900 px-4 py-3 text-xs font-bold text-white shadow-2xl">
+          {listToast.phase === 'confirm' && (
+            <>
+              <span>"{listToast.name}" deleted.</span>
+              <button onClick={handleUndoListClick} className="rounded bg-white px-2 py-1 text-gray-900">
+                Undo
+              </button>
+            </>
+          )}
+          {listToast.phase === 'restoring' && <span>Restoring "{listToast.name}"...</span>}
+          {listToast.phase === 'kidding' && <span>Just kidding. Lists cannot be restored.</span>}
+        </div>
       )}
       {isAdding ? (
         <input
           autoFocus
           value={newName}
-          onChange={(e) => setNewName(e.target.value)}
+          onChange={(e) => {
+            setNewName(e.target.value)
+            setListArmed(false)
+          }}
           onBlur={commitAdd}
           onKeyDown={(e) => {
             if (e.key === 'Enter') commitAdd()
             if (e.key === 'Escape') {
               setNewName('')
               setIsAdding(false)
+              setListArmed(false)
             }
           }}
-          placeholder="List name"
-          className="mt-2 w-full rounded-md border-4 border-dashed border-pink-500 px-3 py-2 text-sm"
+          placeholder={listArmed ? 'Press Enter again to confirm' : 'List name'}
+          className={`mt-2 w-full rounded-md border-4 border-dashed px-3 py-2 text-sm ${
+            listArmed ? 'border-red-500' : 'border-pink-500'
+          }`}
         />
       ) : (
         <button
-          onClick={() => setIsAdding(true)}
+          onClick={handleNewListClick}
           className="dodge mt-2 rounded-md px-3 py-2 text-left text-[8px] text-indigo-300 opacity-40 hover:bg-indigo-50"
         >
           + New list
         </button>
+      )}
+      {showTos && (
+        <TermsOfServiceWall
+          onAgree={() => {
+            setTosAccepted(true)
+            setShowTos(false)
+            setIsAdding(true)
+          }}
+        />
       )}
     </aside>
   )

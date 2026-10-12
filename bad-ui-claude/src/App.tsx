@@ -39,6 +39,67 @@ function useClickBeep() {
   }, [])
 }
 
+function useAlwaysConfirmLeave() {
+  useEffect(() => {
+    // Nothing is ever unsaved here, since nothing is ever saved. Ask anyway.
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [])
+}
+
+function useCopySabotage() {
+  useEffect(() => {
+    function onCopy(e: ClipboardEvent) {
+      e.preventDefault()
+      e.clipboardData?.setData('text/plain', 'Nice try. This text has been replaced.')
+    }
+    document.addEventListener('copy', onCopy)
+    return () => document.removeEventListener('copy', onCopy)
+  }, [])
+}
+
+function useWorseEasterEgg() {
+  const [triggered, setTriggered] = useState(false)
+
+  useEffect(() => {
+    let buffer = ''
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key.length !== 1) return
+      buffer = (buffer + e.key).slice(-5).toLowerCase()
+      if (buffer === 'worse') {
+        setTriggered(true)
+        setTimeout(() => setTriggered(false), 3000)
+        buffer = ''
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  return triggered
+}
+
+function WorseEasterEgg({ active }: { active: boolean }) {
+  useEffect(() => {
+    if (!active) return
+    document.body.classList.add('shake')
+    const t = setTimeout(() => document.body.classList.remove('shake'), 1500)
+    return () => clearTimeout(t)
+  }, [active])
+
+  if (!active) return null
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[2100] flex items-center justify-center bg-black/50">
+      <p className="rainbow-text wobble text-4xl font-black">💀 MAXIMUM CHAOS ACHIEVED 💀</p>
+    </div>
+  )
+}
+
 function useNoRightClick() {
   const [showToast, setShowToast] = useState(false)
 
@@ -53,6 +114,38 @@ function useNoRightClick() {
   }, [])
 
   return showToast
+}
+
+function useChaosFavicon() {
+  useEffect(() => {
+    const emojis = ['🔥', '💀', '⚠️', '😵', '🐛']
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+    const originalHref = link?.href
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = 'icon'
+      document.head.appendChild(link)
+    }
+    const canvas = document.createElement('canvas')
+    canvas.width = 64
+    canvas.height = 64
+    const ctx = canvas.getContext('2d')
+    let i = 0
+    const id = setInterval(() => {
+      if (!ctx || !link) return
+      ctx.clearRect(0, 0, 64, 64)
+      ctx.font = '54px serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(emojis[i % emojis.length], 32, 36)
+      link.href = canvas.toDataURL('image/png')
+      i += 1
+    }, 1000)
+    return () => {
+      clearInterval(id)
+      if (link && originalHref) link.href = originalHref
+    }
+  }, [])
 }
 
 function AreYouStillThereModal() {
@@ -75,6 +168,15 @@ function AreYouStillThereModal() {
       window.removeEventListener('keydown', resetIdleTimer)
     }
   }, [showing])
+
+  useEffect(() => {
+    // Escape is supposed to cancel things. Here it summons the modal instead.
+    function onEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowing(true)
+    }
+    window.addEventListener('keydown', onEscape)
+    return () => window.removeEventListener('keydown', onEscape)
+  }, [])
 
   if (!showing) return null
 
@@ -316,19 +418,35 @@ function LiveChatWidget() {
   const [open, setOpen] = useState(false)
   const [flee, setFlee] = useState({ x: 0, y: 0 })
   const [messages, setMessages] = useState<string[]>([CANNED_SUPPORT_REPLIES[0]])
+  const [unread, setUnread] = useState(0)
 
   function sendCanned() {
     setMessages((m) => [...m, CANNED_SUPPORT_REPLIES[Math.floor(Math.random() * CANNED_SUPPORT_REPLIES.length)]])
   }
 
+  useEffect(() => {
+    if (open) return
+    // Climbs forever while closed. Opening it resolves nothing it claims to.
+    const id = setInterval(() => setUnread((u) => u + 1), 30000)
+    return () => clearInterval(id)
+  }, [open])
+
   return (
     <>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setOpen((o) => !o)
+          setUnread(0)
+        }}
         className="dodge fixed bottom-4 left-20 z-[900] rounded-full border-4 border-black bg-green-500 px-3 py-3 text-xl shadow-xl"
         aria-label="Open live chat"
       >
         💬
+        {unread > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+            {unread}
+          </span>
+        )}
       </button>
       {open && (
         <div className="fixed bottom-20 left-4 z-[900] w-64 rounded-md border-4 border-black bg-white p-3 text-xs shadow-2xl">
@@ -416,6 +534,264 @@ function AdviceMascot() {
   )
 }
 
+function VerifyHumanGate({ onVerified }: { onVerified: () => void }) {
+  const [correctIndex] = useState(() => Math.floor(Math.random() * 9))
+  const [wrongCount, setWrongCount] = useState(0)
+
+  function handlePick(i: number) {
+    if (i === correctIndex) {
+      onVerified()
+    } else {
+      setWrongCount((c) => c + 1)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black">
+      <div className="w-72 rounded-md border-4 border-black bg-white p-6 text-center shadow-2xl">
+        <p className="mb-1 text-sm font-bold">Verify you're human</p>
+        <p className="mb-4 text-xs text-gray-500">Select the correct square. There are no hints.</p>
+        <div className="mb-3 grid grid-cols-3 gap-2">
+          {Array.from({ length: 9 }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => handlePick(i)}
+              aria-label={`Square ${i + 1}`}
+              className="dodge h-14 w-14 rounded border-2 border-gray-300 bg-gray-100 hover:bg-gray-200"
+            />
+          ))}
+        </div>
+        {wrongCount > 0 && (
+          <p className="text-xs font-bold text-red-600">Nope. ({wrongCount} failed attempts)</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function FakeSavingIndicator() {
+  return (
+    <div className="fixed left-1/2 top-2 z-[900] -translate-x-1/2 rounded-full border-2 border-black bg-white px-3 py-1 text-[10px] font-bold text-gray-600 shadow">
+      <span className="inline-block animate-spin">⏳</span> Saving changes…
+    </div>
+  )
+}
+
+const FAKE_SETTINGS = [
+  { key: 'dark', label: 'Dark Mode' },
+  { key: 'notifications', label: 'Notifications' },
+  { key: 'autosave', label: 'Autosave' },
+  { key: 'reduceMotion', label: 'Reduce Motion' },
+]
+
+const NOTIFICATION_SPAM = ['📬 New notification', '📬 Another notification', '📬 You have 47 notifications']
+
+function SettingsPanel() {
+  const [open, setOpen] = useState(false)
+  const [toggles, setToggles] = useState<Record<string, boolean>>({})
+  const [toast, setToast] = useState<string | null>(null)
+  const [spotlightPos, setSpotlightPos] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    if (!toggles.dark) return
+    function onMove(e: MouseEvent) {
+      setSpotlightPos({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener('mousemove', onMove)
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [toggles.dark])
+
+  function handleToggle(key: string, label: string) {
+    const turningOn = !toggles[key]
+    setToggles((t) => ({ ...t, [key]: turningOn }))
+
+    if (key === 'reduceMotion' && turningOn) {
+      // Reduce Motion does the opposite. Obviously.
+      document.body.classList.add('shake')
+      setTimeout(() => document.body.classList.remove('shake'), 1500)
+    }
+
+    if (key === 'notifications' && turningOn) {
+      // Turning notifications ON immediately floods you with notifications.
+      NOTIFICATION_SPAM.forEach((msg, i) => setTimeout(() => setToast(msg), i * 400))
+      setTimeout(() => setToast(null), NOTIFICATION_SPAM.length * 400 + 2000)
+      return
+    }
+
+    setToast(
+      `${label} ${turningOn ? 'enabled' : 'disabled'}${key === 'autosave' ? ' (nothing is actually saved)' : ''}`,
+    )
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  return (
+    <>
+      {toggles.dark && (
+        <div
+          className="pointer-events-none fixed inset-0 z-[1500]"
+          style={{
+            background: `radial-gradient(circle 140px at ${spotlightPos.x}px ${spotlightPos.y}px, transparent 0%, rgba(0,0,0,0.92) 100%)`,
+          }}
+        />
+      )}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="dodge fixed right-20 top-4 z-[900] rounded-full border-4 border-black bg-gray-700 px-3 py-3 text-xl text-white shadow-xl"
+        aria-label="Settings"
+      >
+        ⚙️
+      </button>
+      {open && (
+        <div className="fixed right-4 top-20 z-[900] w-64 rounded-md border-4 border-black bg-white p-4 text-xs shadow-2xl">
+          <p className="mb-3 font-bold">Settings</p>
+          {FAKE_SETTINGS.map((s) => (
+            <label key={s.key} className="mb-2 flex items-center justify-between">
+              <span>{s.label}</span>
+              <input
+                type="checkbox"
+                checked={!!toggles[s.key]}
+                onChange={() => handleToggle(s.key, s.label)}
+              />
+            </label>
+          ))}
+        </div>
+      )}
+      {toast && (
+        <div className="fixed right-4 top-36 z-[901] rounded-md border-2 border-black bg-gray-900 px-3 py-2 text-[10px] font-bold text-white shadow-xl">
+          {toast}
+        </div>
+      )}
+    </>
+  )
+}
+
+const FAKE_SHORTCUTS: [string, string][] = [
+  ['Ctrl+S', 'Does nothing. Nothing is ever saved.'],
+  ['Esc', 'Summons the "Are you still there?" modal.'],
+  ['Delete', 'Deletes a random item, not the one you selected.'],
+  ['Ctrl+Z', 'Does not exist. There is no undo. There never was.'],
+  ['?', 'Shows this extremely unhelpful screen.'],
+]
+
+function ShortcutsModal() {
+  const [showing, setShowing] = useState(false)
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === '?') setShowing(true)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  if (!showing) return null
+
+  return (
+    <div className="fixed inset-0 z-[1008] flex items-center justify-center bg-black/85">
+      <div className="w-80 rounded-md border-4 border-black bg-white p-6 shadow-2xl">
+        <p className="mb-3 text-sm font-bold">Keyboard Shortcuts</p>
+        <ul className="mb-4 space-y-2 text-xs">
+          {FAKE_SHORTCUTS.map(([key, desc]) => (
+            <li key={key} className="flex items-start justify-between gap-3">
+              <span className="whitespace-nowrap font-mono font-bold">{key}</span>
+              <span className="text-right text-gray-500">{desc}</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={() => setShowing(false)}
+          className="dodge w-full rounded-md bg-indigo-600 py-2 text-sm font-bold text-white"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const GHOST_USERS = ['Dave', 'Sarah', 'Guest_482']
+
+function GhostCursors() {
+  const [positions, setPositions] = useState(() =>
+    GHOST_USERS.map(() => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+    })),
+  )
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPositions(
+        GHOST_USERS.map(() => ({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+        })),
+      )
+    }, 2200)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <>
+      {GHOST_USERS.map((name, i) => (
+        <div
+          key={name}
+          className="pointer-events-none fixed z-[920] flex items-center gap-1 transition-all duration-[1800ms] ease-in-out"
+          style={{ left: positions[i].x, top: positions[i].y }}
+        >
+          <span className="text-xl">🖱️</span>
+          <span className="rounded bg-black px-1.5 py-0.5 text-[9px] font-bold text-white">{name}</span>
+        </div>
+      ))}
+    </>
+  )
+}
+
+function ReconnectingBanner() {
+  const [showing, setShowing] = useState(false)
+  const [attempt, setAttempt] = useState(1)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setShowing(true)
+      setAttempt(1)
+    }, 80000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    if (!showing) return
+    if (attempt >= 5) {
+      const t = setTimeout(() => setShowing(false), 1000)
+      return () => clearTimeout(t)
+    }
+    const t = setTimeout(() => setAttempt((a) => a + 1), 900)
+    return () => clearTimeout(t)
+  }, [showing, attempt])
+
+  if (!showing) return null
+
+  return (
+    <div className="fixed inset-x-0 top-0 z-[1009] bg-red-700 px-4 py-2 text-center text-xs font-bold text-white">
+      ⚠ Connection lost. Reconnecting to server... (attempt {attempt}/5)
+    </div>
+  )
+}
+
+function useMaintenanceMode() {
+  const [inMaintenance, setInMaintenance] = useState(false)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setInMaintenance(true)
+      setTimeout(() => setInMaintenance(false), 8000)
+    }, 100000)
+    return () => clearInterval(id)
+  }, [])
+
+  return inMaintenance
+}
+
 function App() {
   const {
     lists,
@@ -433,11 +809,25 @@ function App() {
 
   useAnnoyingTitle()
   useClickBeep()
+  useChaosFavicon()
+  useAlwaysConfirmLeave()
+  useCopySabotage()
   const showNoRightClickToast = useNoRightClick()
+  const worseTriggered = useWorseEasterEgg()
+  const [verified, setVerified] = useState(false)
+  const inMaintenance = useMaintenanceMode()
+
+  if (!verified) {
+    return <VerifyHumanGate onVerified={() => setVerified(true)} />
+  }
 
   return (
     <div style={{ perspective: '900px' }} className="invert-flash zoom-breathe h-screen overflow-hidden">
-      <div className="hue-cycle flex h-screen flex-row-reverse bg-gradient-to-br from-fuchsia-500 via-yellow-300 to-cyan-400 [transform:rotateX(3deg)_rotateY(-4deg)]">
+      <div
+        className={`hue-cycle flex h-screen flex-row-reverse bg-gradient-to-br from-fuchsia-500 via-yellow-300 to-cyan-400 [transform:rotateX(3deg)_rotateY(-4deg)] ${
+          inMaintenance ? 'pointer-events-none opacity-40' : ''
+        }`}
+      >
         <Sidebar
           lists={lists}
           selectedListId={selectedListId}
@@ -468,6 +858,22 @@ function App() {
       <LiveChatWidget />
       <TrialExpiredModal />
       <AdviceMascot />
+      <FakeSavingIndicator />
+      <SettingsPanel />
+      <ShortcutsModal />
+      <GhostCursors />
+      <ReconnectingBanner />
+      <WorseEasterEgg active={worseTriggered} />
+      {inMaintenance && (
+        <div className="fixed inset-0 z-[1010] flex items-center justify-center bg-black/40">
+          <div className="rounded-md border-4 border-black bg-white px-6 py-4 text-center shadow-2xl">
+            <p className="text-sm font-bold">🔧 Scheduled Maintenance</p>
+            <p className="mt-1 text-xs text-gray-500">
+              Please wait. This will resolve itself for no particular reason.
+            </p>
+          </div>
+        </div>
+      )}
       {showNoRightClickToast && (
         <div className="shake fixed bottom-20 right-4 z-[1002] rounded-md border-4 border-black bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-2xl">
           Nice try. Right-click is disabled.

@@ -5,9 +5,73 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>bad-ui-claude</title>
+    <style>
+      #fake-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: #0b0b14;
+        color: #fff;
+        font-family: sans-serif;
+        transition: opacity 0.4s ease-out;
+      }
+      #fake-splash p {
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.7;
+      }
+      #fake-splash .bar {
+        width: 220px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.15);
+        overflow: hidden;
+      }
+      #fake-splash .fill {
+        height: 100%;
+        width: 0%;
+        background: #818cf8;
+        transition: width 0.3s ease-out;
+      }
+    </style>
   </head>
   <body>
+    <div id="fake-splash">
+      <p id="fake-splash-label">Loading your to-do list… 0%</p>
+      <div class="bar"><div class="fill" id="fake-splash-fill"></div></div>
+    </div>
     <div id="root"></div>
+    <script>
+      // The percentage is theater. It always sticks at 99% for a beat before "finishing."
+      (function () {
+        var fill = document.getElementById('fake-splash-fill')
+        var label = document.getElementById('fake-splash-label')
+        var pct = 0
+        var tick = setInterval(function () {
+          pct = pct >= 99 ? 99 : pct + Math.ceil(Math.random() * 14)
+          fill.style.width = Math.min(pct, 99) + '%'
+          label.textContent = 'Loading your to-do list… ' + Math.min(pct, 99) + '%'
+        }, 180)
+        setTimeout(function () {
+          clearInterval(tick)
+          fill.style.width = '100%'
+          label.textContent = 'Loading your to-do list… 100%'
+          setTimeout(function () {
+            var splash = document.getElementById('fake-splash')
+            splash.style.opacity = '0'
+            setTimeout(function () {
+              splash.remove()
+            }, 400)
+          }, 300)
+        }, 2200)
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

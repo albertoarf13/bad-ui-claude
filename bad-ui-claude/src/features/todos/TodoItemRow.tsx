@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { TodoItem } from './types'
 
+const FAKE_DESCRIPTION_LIMIT = 50
+
 export function TodoItemRow({
   item,
   onToggle,
@@ -16,6 +18,7 @@ export function TodoItemRow({
   const [draftTitle, setDraftTitle] = useState(item.title)
   const [draftDescription, setDraftDescription] = useState(item.description)
   const [checkboxFlee, setCheckboxFlee] = useState({ x: 30, y: -20 })
+  const [likes, setLikes] = useState(0)
 
   function startEdit() {
     setDraftTitle(item.title)
@@ -44,6 +47,14 @@ export function TodoItemRow({
           rows={2}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         />
+        <p
+          className={`text-[10px] font-bold ${
+            draftDescription.length > FAKE_DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-400'
+          }`}
+        >
+          {/* This limit isn't real. Nothing stops you from saving anyway. */}
+          {FAKE_DESCRIPTION_LIMIT - draftDescription.length} characters remaining
+        </p>
         <div className="flex gap-2">
           <button
             onClick={() => setIsEditing(false)}
@@ -65,6 +76,14 @@ export function TodoItemRow({
   return (
     <div className="group flex items-start gap-3 border-b-2 border-dashed border-orange-400 py-2 last:border-0">
       <span className="flex items-center gap-1 opacity-0 transition-opacity duration-1000 delay-700 group-hover:opacity-100">
+        <button
+          onClick={() => setLikes((l) => l + 1)}
+          title="Does nothing for anyone. Purely decorative."
+          className="rounded p-1 text-xs text-gray-400 hover:text-pink-500"
+          aria-label="Like this task"
+        >
+          👍 {likes}
+        </button>
         <button
           onClick={startEdit}
           title="Good luck catching this button"
